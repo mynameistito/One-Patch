@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-11-18
+
+### Fixed
+- Blocking and the floating shortcut stay active when the app is swiped away from recent apps.
+- Android can restart an active blocking service after reclaiming its process, restoring manual pause state.
+- Stopping from the app or notification clears restart intent. Android Force stop remains respected.
+
 ## [1.1.0] - 2026-11-18
 
 ### Added

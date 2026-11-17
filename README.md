@@ -3,6 +3,12 @@
 This fork adds an English interface, thin blocking strips, a floating shortcut that tucks off-screen,
 and fullscreen editor coordinate fixes for camera-cutout devices.
 
+Enable blocking once, then leave the app or swipe it away from recent apps: the foreground service
+keeps the blocking area and floating shortcut active. Use **Stop blocking** in the app or its
+notification to stop it. Android may restart an active service after reclaiming its process.
+Force stop, Android Task Manager Stop, and reboot are not bypassed. On Samsung, use App info →
+Battery → Unrestricted if battery management interrupts the service.
+
 Download fork builds from [Releases](https://github.com/mynameistito/One-Patch/releases).
 Fork releases use a dedicated signing key and cannot update upstream-signed or debug APKs in place.
 Accessibility is optional; the exported Quick Toggle can replay the saved gesture when launched by

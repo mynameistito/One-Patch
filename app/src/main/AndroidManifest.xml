@@ -71,6 +71,7 @@
 
         <service
             android:name=".service.OverlayService"
+            android:stopWithTask="false"
             android:description="@string/service_description"
             android:exported="false"
             android:foregroundServiceType="specialUse">

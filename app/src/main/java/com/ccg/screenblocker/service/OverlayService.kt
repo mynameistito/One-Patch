@@ -122,6 +122,7 @@ class OverlayService : Service() {
     private var stateListener: StateListener? = null
 
     private val repository by lazy { SharedPrefsBlockAreaRepository(this) }
+    private val runtimePrefs by lazy { getSharedPreferences("runtime_state", MODE_PRIVATE) }
 
     /** 监听 AccessibilityService 上下线，用于在用户授权后自动重挂 trusted overlay 或 fallback */
     private val a11yReceiver = object : android.content.BroadcastReceiver() {
@@ -196,6 +197,10 @@ class OverlayService : Service() {
     override fun onBind(intent: Intent?): IBinder = binder
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent == null && runtimePrefs.getBoolean("enabled", false)) {
+            manualBypass = runtimePrefs.getBoolean("manual_bypass", false)
+            handleEnable()
+        }
         when (intent?.action) {
             ACTION_ENABLE -> handleEnable()
             ACTION_STOP -> handleStop()
@@ -208,7 +213,7 @@ class OverlayService : Service() {
                 if (runState == RunState.STOPPED) stopSelf()
             }
         }
-        return START_NOT_STICKY
+        return if (runState != RunState.STOPPED) START_STICKY else START_NOT_STICKY
     }
 
     private fun handleEnable() {
@@ -236,6 +241,7 @@ class OverlayService : Service() {
         repository.save(area)
         Log.i(TAG, "handleEnable area=$area display=${dw}x${dh}")
         startForegroundCompat(area)
+        runtimePrefs.edit().putBoolean("enabled", true).apply()
         runState = RunState.ARMING
         notifyStateChanged()
 
@@ -252,6 +258,7 @@ class OverlayService : Service() {
     }
 
     private fun handleStop() {
+        runtimePrefs.edit().putBoolean("enabled", false).putBoolean("manual_bypass", false).apply()
         // FAB 必须先于 overlay 拆除，避免主线程残留 view
         detachFabIfAttached()
         pendingEnableRunnable?.let(mainHandler::removeCallbacks)
@@ -394,6 +401,7 @@ class OverlayService : Service() {
      * - DisplayAttachedBackend 路径：靠 OverlayView.bypassRuntime + onTouchEvent 返回 false 实现透传
      */
     private fun applyBypassState() {
+        runtimePrefs.edit().putBoolean("manual_bypass", manualBypass).apply()
         val v = overlayView ?: return
         val bypass = effectiveBypass
         v.bypassRuntime = bypass
@@ -938,11 +946,6 @@ class OverlayService : Service() {
         compensatedDeltaY = 0
         notifyStateChanged()
         super.onDestroy()
-    }
-
-    override fun onTaskRemoved(rootIntent: Intent?) {
-        handleStop()
-        super.onTaskRemoved(rootIntent)
     }
 
     private fun notifyStateChanged() {
