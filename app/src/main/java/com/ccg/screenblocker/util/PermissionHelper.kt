@@ -64,10 +64,10 @@ object PermissionHelper {
      * 这些权限没有稳定公开 API 检查，只能让用户对照清单手动开启。
      */
     fun getXiaomiManualChecklist(): List<String> = listOf(
-        "在「应用详情」中开启「后台弹出界面」",
-        "在「应用详情」中开启「自启动」",
-        "在「应用详情」→「省电策略」选择「无限制」",
-        "在最近任务卡片中长按本应用，选择「锁定」"
+        "In app settings, allow background pop-up windows",
+        "In app settings, enable autostart",
+        "In app settings, set battery saver to Unrestricted",
+        "In recent apps, long-press One Patch and choose Lock"
     )
 
     /**

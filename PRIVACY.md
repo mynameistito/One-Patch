@@ -1,10 +1,10 @@
 # DeadZone — Privacy Policy
 
-**Last updated**: 2026-04-28
+**Last updated**: 2026-11-18
 
 ## Summary in one sentence
 
-**DeadZone collects, stores, transmits, and sells absolutely nothing. It cannot — it has no internet permission.**
+**One Patch stores settings and gestures you explicitly record locally. No analytics or data transmission is implemented, and the app does not request internet permission.**
 
 ## What data does the app access?
 
@@ -17,6 +17,7 @@
 | Microphone / Camera | ❌ Never requested | — |
 | Touch coordinates inside the dead zone | ✅ Discarded immediately, never recorded | Black-holed — `onTouchEvent` returns `true` and the event is gone |
 | Dead zone rectangle (x, y, width, height) | ✅ Stored locally on your device only | `SharedPreferences` in app's private sandbox |
+| Recorded one-handed-mode gesture | ✅ Touch coordinates and timing, only during recording | Private SharedPreferences on your device |
 | Crash reports / analytics | ❌ Not implemented | — |
 
 ## Permissions explained
@@ -26,7 +27,7 @@
 | `SYSTEM_ALERT_WINDOW` | Draw the transparent overlay rectangle on top of other apps to absorb touches |
 | `FOREGROUND_SERVICE` + `FOREGROUND_SERVICE_SPECIAL_USE` | Keep the overlay alive in the background under aggressive OEM battery policies (Xiaomi HyperOS / MIUI) |
 | `POST_NOTIFICATIONS` (Android 13+) | Show the persistent notification with the "Stop blocking" quick action |
-| `BIND_ACCESSIBILITY_SERVICE` *(optional, user-enabled)* | Obtain `TYPE_ACCESSIBILITY_OVERLAY` so the dead zone stays at fixed physical coordinates instead of being transformed by Xiaomi one-handed mode. **The accessibility service in this app does not read any screen content, does not listen to any accessibility events, and does not perform any gestures.** |
+| `BIND_ACCESSIBILITY_SERVICE` *(optional, user-enabled)* | Create accessibility overlays and replay your recorded gesture when triggered. Window content retrieval is disabled and accessibility events are ignored. Positioning varies by device. The exported Quick Toggle can also trigger replay when launched by another app while blocking is active. |
 
 ## Network usage
 
@@ -42,8 +43,8 @@ The app collects no data. It is suitable for users of all ages.
 
 ## Open source
 
-Source code is publicly available at [github.com/overbaker/deadzone](https://github.com/overbaker/deadzone). You can audit every line.
+Source code is publicly available at [github.com/mynameistito/One-Patch](https://github.com/mynameistito/One-Patch). You can audit every line.
 
 ## Contact
 
-Issues / questions → [github.com/overbaker/deadzone/issues](https://github.com/overbaker/deadzone/issues)
+Issues / questions → [github.com/mynameistito/One-Patch/issues](https://github.com/mynameistito/One-Patch/issues)

@@ -210,6 +210,20 @@ class OverlayView @JvmOverloads constructor(
             post { applyFromBlockArea(area, displayWidthPx, displayHeightPx) }
             return
         }
+        if (fullscreenMode) {
+            // Editor coordinates are local pixels, not a scaled screen preview.
+            val origin = IntArray(2)
+            getLocationOnScreen(origin)
+            rect.set(
+                (area.leftPx - origin[0]).toFloat(),
+                (area.topPx - origin[1]).toFloat(),
+                (area.rightPx - origin[0]).toFloat(),
+                (area.bottomPx - origin[1]).toFloat()
+            )
+            clampRect()
+            invalidate()
+            return
+        }
         val sx = letterbox.width() / displayWidthPx.toFloat()
         val sy = letterbox.height() / displayHeightPx.toFloat()
         rect.set(
@@ -224,6 +238,18 @@ class OverlayView @JvmOverloads constructor(
 
     fun toBlockArea(displayWidthPx: Int, displayHeightPx: Int): BlockArea {
         if (letterbox.isEmpty) return BlockArea.default(displayWidthPx, displayHeightPx)
+        if (fullscreenMode) {
+            val origin = IntArray(2)
+            getLocationOnScreen(origin)
+            return BlockArea(
+                leftPx = rect.left.toInt() + origin[0],
+                topPx = rect.top.toInt() + origin[1],
+                widthPx = rect.width().toInt(),
+                heightPx = rect.height().toInt(),
+                savedDisplayWidthPx = displayWidthPx,
+                savedDisplayHeightPx = displayHeightPx
+            ).clamp(displayWidthPx, displayHeightPx, 0, BlockArea.MIN_SIZE_PX)
+        }
         val sx = displayWidthPx.toFloat() / letterbox.width()
         val sy = displayHeightPx.toFloat() / letterbox.height()
         val xPx = ((rect.left - letterbox.left) * sx).toInt()
@@ -256,8 +282,8 @@ class OverlayView @JvmOverloads constructor(
         if (letterbox.isEmpty) return
 
         val minSizeView = if (screenWidthPx > 0)
-            DisplayHelper.dpF(context, 72f) * letterbox.width() / screenWidthPx.toFloat()
-        else DisplayHelper.dpF(context, 72f)
+            BlockArea.MIN_SIZE_PX * letterbox.width() / screenWidthPx.toFloat()
+        else BlockArea.MIN_SIZE_PX.toFloat()
 
         val w = max(rect.width(), minSizeView).coerceAtMost(letterbox.width())
         val h = max(rect.height(), minSizeView).coerceAtMost(letterbox.height())
@@ -376,14 +402,17 @@ class OverlayView @JvmOverloads constructor(
             val ddx = x - px; val ddy = y - py
             return ddx * ddx + ddy * ddy
         }
-        return when {
-            dSq(r.left, r.top) <= rSq -> GestureMode.RESIZE_TL
-            dSq(r.right, r.top) <= rSq -> GestureMode.RESIZE_TR
-            dSq(r.left, r.bottom) <= rSq -> GestureMode.RESIZE_BL
-            dSq(r.right, r.bottom) <= rSq -> GestureMode.RESIZE_BR
-            r.contains(x, y) -> GestureMode.MOVE
-            else -> GestureMode.NONE
-        }
+        // Thin areas have overlapping handle targets. Pick the nearest corner
+        // so both the top and bottom edges remain reachable.
+        val nearest = listOf(
+            GestureMode.RESIZE_TL to dSq(r.left, r.top),
+            GestureMode.RESIZE_TR to dSq(r.right, r.top),
+            GestureMode.RESIZE_BL to dSq(r.left, r.bottom),
+            GestureMode.RESIZE_BR to dSq(r.right, r.bottom)
+        ).minBy { it.second }
+        return if (nearest.second <= rSq) nearest.first
+        else if (r.contains(x, y)) GestureMode.MOVE
+        else GestureMode.NONE
     }
 
     private fun applyGesture(dx: Float, dy: Float) {

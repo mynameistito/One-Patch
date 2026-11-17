@@ -1,5 +1,13 @@
 # One Patch
 
+This fork adds an English interface, thin blocking strips, a floating shortcut that tucks off-screen,
+and fullscreen editor coordinate fixes for camera-cutout devices.
+
+Download fork builds from [Releases](https://github.com/mynameistito/One-Patch/releases).
+Fork releases use a dedicated signing key and cannot update upstream-signed or debug APKs in place.
+Accessibility is optional; the exported Quick Toggle can replay the saved gesture when launched by
+another app while blocking and Accessibility are enabled. Keep Accessibility off if you do not need it.
+
 > **Slap a patch on your screen.** Block accidental touches in any rectangular area, with one-tap quick switching and recordable one-handed-mode gestures.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -20,7 +28,7 @@ A lightweight Android utility that lets you "patch over" a rectangular zone of y
 - **Record your own one-handed-mode gesture** once on your device, replay any time the FAB asks for it
 - **Quick Toggle alias** — bind to Xiaomi 敲击背部 / 悬浮球 / 桌面快捷方式 for one-tap pause/resume
 - **Visible runtime overlay** (12% blue tint + red border, toggleable) so you always know where the patch is
-- **Survives Xiaomi one-handed mode** when Accessibility Service is enabled (uses `TYPE_ACCESSIBILITY_OVERLAY` trusted window)
+- **Optional accessibility overlays and gesture replay** (one-handed-mode behavior varies by device)
 - **Auto-bypass** when the system displaces the overlay (e.g. one-handed mode trigger), restores when display returns
 - **Foreground service** for HyperOS / MIUI battery survival
 - **No internet permission** — fully offline, zero telemetry
@@ -30,7 +38,7 @@ A lightweight Android utility that lets you "patch over" a rectangular zone of y
 
 ## 📲 Install
 
-Download the latest APK from [Releases](https://github.com/TennyDDDD/One-Patch/releases/latest) and `adb install` or open on device.
+Download the latest APK from [Releases](https://github.com/mynameistito/One-Patch/releases/latest) and `adb install` or open on device.
 
 ```bash
 adb install -r app-release.apk
@@ -41,7 +49,7 @@ adb install -r app-release.apk
 | Step | Action |
 |---|---|
 | 1 | Grant **"Display over other apps"** permission |
-| 2 *(recommended)* | Enable **One Patch Accessibility Service** in *Settings → Accessibility → Installed services* — makes the patch immune to one-handed mode transform |
+| 2 *(optional)* | Enable **One Patch Accessibility Service** in *Settings → Accessibility → Installed services* — enables accessibility overlays and gesture replay; positioning varies by device |
 | 3 *(Xiaomi only)* | In *App info → Other permissions*, allow **"Show on lock screen"** & **"Display pop-up windows while running in background"**, set **Battery saver → No restrictions** |
 | 4 *(optional)* | Tap **录制单手模式手势** in main settings to record your device's actual one-handed-mode trigger gesture for reliable replay |
 
@@ -102,7 +110,7 @@ One Patch **does not** collect, store, transmit, or sell any personal data. No i
 ## 🏗 Build from source
 
 ```bash
-git clone https://github.com/TennyDDDD/One-Patch.git
+git clone https://github.com/mynameistito/One-Patch.git
 cd One-Patch
 
 # Generate your own signing key (one-time, BACK IT UP)

@@ -230,7 +230,7 @@ class OverlayService : Service() {
                 displayWidthPx = dw,
                 displayHeightPx = dh,
                 marginPx = 0,
-                minSizePx = DisplayHelper.dp(this, 72f)
+                minSizePx = BlockArea.MIN_SIZE_PX
             )
         currentArea = area
         repository.save(area)
@@ -624,17 +624,35 @@ class OverlayService : Service() {
         val (sw, sh) = DisplayHelper.getRealDisplaySizePx(this)
         val defaultX = sw - sizePx - DisplayHelper.dp(this, 16f)
         val defaultY = sh / 2
+        // Leave a grab area visible even when most of the button is off-screen.
+        val visibleEdgePx = DisplayHelper.dp(this, 4f).coerceIn(1, sizePx)
+        val minFabX = visibleEdgePx - sizePx
+        val minFabY = visibleEdgePx - sizePx
+        val maxFabX = (sw - visibleEdgePx).coerceAtLeast(minFabX)
+        val maxFabY = (sh - visibleEdgePx).coerceAtLeast(minFabY)
+        fun constrainFab(x: Int, y: Int): Pair<Int, Int> {
+            val boundedX = x.coerceIn(minFabX, maxFabX)
+            // Avoid hiding the circular button completely beyond a corner.
+            val boundedY = if (boundedX < 0 || boundedX + sizePx > sw)
+                y.coerceIn(0, (sh - sizePx).coerceAtLeast(0))
+            else y.coerceIn(minFabY, maxFabY)
+            return boundedX to boundedY
+        }
+        val savedPosition = constrainFab(
+            sp.getInt("fab_x", defaultX), sp.getInt("fab_y", defaultY)
+        )
 
         val params = WindowManager.LayoutParams(
             sizePx, sizePx,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
-            x = sp.getInt("fab_x", defaultX)
-            y = sp.getInt("fab_y", defaultY)
+            x = savedPosition.first
+            y = savedPosition.second
             title = "DeadZoneFAB"
         }
 
@@ -695,8 +713,9 @@ class OverlayService : Service() {
                         cancel.recycle()
                     }
                     if (dragging) {
-                        params.x = (startParamX + dx).coerceIn(0, sw - sizePx)
-                        params.y = (startParamY + dy).coerceIn(0, sh - sizePx)
+                        val position = constrainFab(startParamX + dx, startParamY + dy)
+                        params.x = position.first
+                        params.y = position.second
                         runCatching { wm.updateViewLayout(iv, params) }
                     } else {
                         tapDetector.onTouchEvent(event)
@@ -705,6 +724,24 @@ class OverlayService : Service() {
                 }
                 android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
                     if (dragging) {
+                        if (event.actionMasked == android.view.MotionEvent.ACTION_UP) {
+                            // Finish tucking on release; a finger cannot travel past
+                            // the display edge to move the whole button off-screen.
+                            val dockX = when {
+                                params.x < 0 -> minFabX
+                                params.x + sizePx > sw -> maxFabX
+                                else -> params.x
+                            }
+                            val dockY = when {
+                                params.y < 0 -> minFabY
+                                params.y + sizePx > sh -> maxFabY
+                                else -> params.y
+                            }
+                            val position = constrainFab(dockX, dockY)
+                            params.x = position.first
+                            params.y = position.second
+                            runCatching { wm.updateViewLayout(iv, params) }
+                        }
                         sp.edit().putInt("fab_x", params.x).putInt("fab_y", params.y).apply()
                     } else {
                         // 非拖动 → 把事件交给 GestureDetector 完成 tap 识别
@@ -860,7 +897,7 @@ class OverlayService : Service() {
                 displayWidthPx = dw,
                 displayHeightPx = dh,
                 marginPx = 0,
-                minSizePx = DisplayHelper.dp(this, 72f)
+                minSizePx = BlockArea.MIN_SIZE_PX
             )
         currentArea = rescaled
         repository.save(rescaled)

@@ -91,6 +91,8 @@ data class BlockArea(
     fun isValid(minSizePx: Int): Boolean = widthPx >= minSizePx && heightPx >= minSizePx
 
     companion object {
+        const val MIN_SIZE_PX = 1
+
         /**
          * 创建默认矩形（屏幕中心、约 60%x20% 大小）
          */

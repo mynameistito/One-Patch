@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-18
+
+### Added
+- English interface, permission guidance, accessibility labels, and notifications.
+- Chinese localization retained for Chinese-language devices.
+- Blocking areas as thin as 1 pixel, with nearest-corner resize handles.
+- Floating shortcut can tuck off-screen, leaving a 4dp edge to grab.
+
+### Fixed
+- Fullscreen editor accounts for camera cutouts and screen coordinates when loading and saving areas.
+- Floating shortcut finishes docking when released partly off-screen and cannot disappear into a corner.
+- Existing notification channels refresh their localized names.
+
+### Release
+- Fork releases require a dedicated signing key instead of falling back to debug signing.
+- Accessibility remains optional. The exported Quick Toggle can trigger the saved gesture;
+  leave Accessibility disabled if you do not need gesture replay.
+
 ## [1.0.0] - 2026-04-28
 
 ### Added

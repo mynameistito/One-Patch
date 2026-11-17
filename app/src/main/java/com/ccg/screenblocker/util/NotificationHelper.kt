@@ -28,7 +28,8 @@ object NotificationHelper {
     fun ensureChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            if (nm.getNotificationChannel(CHANNEL_ID) == null) {
+            // Refresh the localized channel name after an app update or locale change.
+            run {
                 val channel = NotificationChannel(
                     CHANNEL_ID,
                     context.getString(R.string.notif_channel_name),
@@ -51,7 +52,7 @@ object NotificationHelper {
         autoBypass: Boolean = false
     ): Notification {
         val baseText = context.getString(R.string.notif_text, area.widthPx, area.heightPx)
-        val subText = bypassToken(manualBypass, autoBypass)
+        val subText = bypassToken(context, manualBypass, autoBypass)
         return NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(context.getString(R.string.notif_title))
@@ -71,9 +72,9 @@ object NotificationHelper {
             .build()
     }
 
-    private fun bypassToken(manualBypass: Boolean, autoBypass: Boolean): String? = when {
-        manualBypass -> "已暂停（手动）"
-        autoBypass -> "已暂停（自动）"
+    private fun bypassToken(context: Context, manualBypass: Boolean, autoBypass: Boolean): String? = when {
+        manualBypass -> context.getString(R.string.notif_paused_manual)
+        autoBypass -> context.getString(R.string.notif_paused_auto)
         else -> null
     }
 
